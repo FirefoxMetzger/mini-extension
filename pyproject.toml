@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "mini_extension"
+version = "0.1.0"
+description = "Minimal Example of compiling C extensions with Poetry"
+authors = ["Sebastian Wallkötter <sebastian@wallkoetter.net>"]
+license = "BSD 3-clause"
+build = "build.py"
+
+[tool.poetry.dependencies]
+python = ">=3.8,<=3.10"
+
+[tool.poetry.dev-dependencies]
+black = {version = "^22.6.0", allow-prereleases = true}
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

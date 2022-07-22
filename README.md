@@ -1,0 +1,1 @@
+This project is a minimal demo of how to use poetry to build c extensions.
