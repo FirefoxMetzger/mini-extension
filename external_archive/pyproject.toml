@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "extension"
+version = "0.1.0"
+description = "A minimal example of using a C extension with external dependency."
+authors = ["Sebastian Wallkötter <sebastian@wallkoetter.net>"]
+license = "BSD 3-clause"
+build="build.py"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
