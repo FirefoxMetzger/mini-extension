@@ -1,5 +1,5 @@
 #include <Python.h>
-#include <hello.h>
+#include "external_shared/hello.h"
 
 static PyObject* hello_world(PyObject *self, PyObject *args)
 {
