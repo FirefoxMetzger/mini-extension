@@ -1,4 +1,3 @@
-from setuptools.extension import Extension
 from setuptools.command.develop import develop
 from setuptools.command.build_clib import build_clib
 
@@ -7,70 +6,77 @@ from distutils import log
 from setuptools.dep_util import newer_pairwise_group
 import platform
 from pathlib import Path
+import shutil
 
 
 class CustomDevelop(develop):
     """Custom install procedure.
 
-    .. note::
-
-        This is only needed if your have "external source", i.e., if your
-        extensions depend on an external C library that you wish to compile into
-        a .lib or if you want to compile a .so/.dll for dynamic linking.
-
     When declaring a ``build.py`` poetry switches to setuptools during
     installation, i.e., it generates a temporary ``setup.py`` and then calls
-    ``setup.py develop`` on it. Consequentially, we can hook into the develop
-    command and customize the build to compile any source :)
+    ``setup.py develop`` on it when you call ``poetry install``.
+    Consequentially, we can hook into the develop command and customize the
+    build to compile our source :) Note that this is only needed for the
+    ``develop`` command, because the ``build`` command (``poetry build``)
+    already includes ``build_clib``.
 
-    This class then is the hook that will compile the source when we cal
+    This class then is the hook that will compile the source when we call
     ``poetry install``.
 
     """
 
     def run(self) -> None:
-        # build archives (.lib) these are declared in the `libraries` kwarg of
-        # setup(). Extensions may depend on these, so we have to build the libs
-        # them first.
+        # build the external C code before packaging
         self.run_command("build_clib")
-
         super().run()
-
-        # when building shared libraries, we may wish to move them into the
-        # package folder
 
 
 class CustomBuildClib(build_clib):
     """Custom build instructions.
 
-    .. note::
+    This function adds the ability to compile shared libraries to build_clib. It
+    is mostly analogous to building an archive (.lib/.a) except that we call
+    ``compiler.link_shared_lib`` instead of ``compiler.create_static_lib`` in
+    the end.
 
-        This is only needed if you have "external source" that you want to
-        compile into a **shared** library (.dll / .so). If you want to compile a
-        statically linked library, use the ``libraries`` kwarg instead (see
-        below for an example how to do that).
+    To differentiate, the command adds the ``shared`` flag to the ``libraries``
+    definition. This is ``False`` by default (i.e., build an archive), but
+    builds a dynamically linked library (.dll/.so) if set to ``True``. See the
+    setup kwargs below for an example.
 
-    This function adds the ability to compile shared libraries to build_clib.
-    This is mostly analogous to building an archive (.lib / .a) except that we
-    call the linker with different arguments.
+    On Windows, this also adds the ``/DLL`` flag, which is needed to create a
+    library (DLL) instad of an executable (EXE).
 
     """
 
-    user_options = build_clib.user_options + [('build-shared=', 's',
-         "directory to place shared C/C++ libraries after linking."),]
+    user_options = build_clib.user_options + [('shared-location=', 's',
+         "copy the shared C/C++ libraries here after linking."),]
 
     def initialize_options(self) -> None:
-        self.build_shared = None
+        self.shared_location = None
         super().initialize_options()
 
-    def finalize_options(self) -> None:
-        super().finalize_options()
-        if self.build_shared is None:
-            self.build_shared = self.build_clib
-
     def run(self) -> None:
-        Path(self.build_shared).mkdir(exist_ok=True, parents=True)
         super().run()
+
+        # after building, copy the shared libraries into the given folder if needed.
+        # this is useful if you need to have the libraries in a specific folder because
+        # you are accessing them, e.g. by using ctypes, and you want them in a specific
+        # folder when packaging.
+        if self.shared_location is not None and self.libraries is not None:
+            out_dir = Path(self.shared_location)
+            out_dir.mkdir(exist_ok=True, parents=True)
+            build_dir = Path(self.build_clib)
+            for (lib_name, build_info) in self.libraries:
+                if not build_info.get("shared", False):
+                    continue
+
+                file_name = self.compiler.library_filename(lib_name, lib_type="shared")
+
+                shutil.copy(
+                    str(build_dir / file_name),
+                    str(out_dir / file_name)
+                )
 
     def build_libraries(self, libraries):
         # Note: this is a copy of build_clib except for the part marked below
@@ -158,7 +164,7 @@ class CustomBuildClib(build_clib):
                 self.compiler.link_shared_lib(
                     expected_objects,
                     lib_name,
-                    output_dir=self.build_shared,
+                    output_dir=self.build_clib,
                     debug=self.debug,
                     extra_preargs=preargs,
                 )
@@ -174,51 +180,34 @@ class CustomBuildClib(build_clib):
                 )
 
 
-internal_source = Extension(
-    "mini_extension.internal",
-    sources=["mini_extension/internal_source.c"],
-    define_macros=[("PY_SSIZE_T_CLEAN",)],
-)
-
-external_lib = Extension(
-    "mini_extension.external",
-    sources=["mini_extension/external_source.c"],
-    define_macros=[("PY_SSIZE_T_CLEAN",)],
-    # dependencies
-    include_dirs=["include/"],
-    libraries=["hello"],  # see below
-)
-
-
 def build(setup_kwargs):
     """
     This is a callback for poetry used to hook in our extensions.
     """
 
-    setup_kwargs.update(
-        {
-            # declare archives (.lib) to build. These will be linked to
-            # statically by extensions, cython, ...
-            # Note: you can also declare cflags, include_dirs, ... in the dict :)
-            "libraries": [
-                ("hello", {"sources": ["src/external_lib/hello.c"]}),
-                (
-                    "shared_hello",
-                    {"sources": ["src/external_shared/hello.c"], "shared": True},
-                ),
-            ],
-            "options": {
-                "bdist_wheel": {
-                    "universal": True
-                }
-            },
-            # declare extensions (.pyd) to build. These can be imported and
-            # called directly from python. Here, we build the following extensions'
-            # - internal_source: Minimal Extension (no dependencies)
-            # - external_c_source: Extension that depends on a .lib we build above
-            "ext_modules": [internal_source, external_lib],
-            # hook into the build process to build our external sources before
-            # we build and install the package.
-            "cmdclass": {"develop": CustomDevelop, "build_clib": CustomBuildClib},
-        }
-    )
+    setup_kwargs.update({
+        # declare shared libraries (.dll/.so) to build. These can be linked
+        # into extensions or cython code, but also accessed by ctypes or cffi
+        "libraries": [
+            (
+                "shared_hello",
+                {
+                    "sources": ["external_library/src/hello.c"],
+                    "shared": True,
+                    # "cflags": ...
+                    # "include_dir": ...
+                    # "libraries": ...
+                },
+            ),
+        ],
+        # configure the build_clib command to place the shared library into
+        # extension/lib. This is purely my convention, so feel free to
+        # adjust this as needed.
+        "options": {
+            "build_clib": {
+                "shared_location": "extension/lib"
+            }
+        },
+        # hook into the build process to run our modifications from above
+        "cmdclass": {"develop": CustomDevelop, "build_clib": CustomBuildClib},
+    })
