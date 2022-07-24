@@ -7,8 +7,11 @@ class CustomDevelop(develop):
 
     When declaring a ``build.py`` poetry switches to setuptools during
     installation, i.e., it generates a temporary ``setup.py`` and then calls
-    ``setup.py develop`` on it. Consequentially, we can hook into the develop
-    command and customize the build to compile any source :)
+    ``setup.py develop`` on it when you call ``poetry install``.
+    Consequentially, we can hook into the develop command and customize the
+    build to compile our source :) Note that this is only needed for the
+    ``develop`` command, because the ``build`` command (``poetry build``)
+    already includes ``build_clib``.
 
     This class then is the hook that will compile the source when we call
     ``poetry install``.
@@ -42,9 +45,14 @@ def build(setup_kwargs):
         {
             # declare archives (.lib) to build. These will be linked to
             # statically by extensions, cython, ...
-            # Note: you can also declare cflags, include_dirs, ... in the dict :)
             "libraries": [
-                ("hello", {"sources": ["external_archive/src/hello.c"]}),
+                ("hello", {
+                    "sources": ["external_archive/src/hello.c"]
+                    # flags and dependencies of this library
+                    # "include_dirs": ... 
+                    # "libraries": ...
+                    # "cflags": ...
+                }),
             ],
             "ext_modules": [custom_extension],
             # hook into the build process to build our external sources before
