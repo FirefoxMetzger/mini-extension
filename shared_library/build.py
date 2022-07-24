@@ -190,7 +190,7 @@ def build(setup_kwargs):
         # into extensions or cython code, but also accessed by ctypes or cffi
         "libraries": [
             (
-                "shared_hello",
+                "hello_library",
                 {
                     "sources": ["external_library/src/hello.c"],
                     "shared": True,
