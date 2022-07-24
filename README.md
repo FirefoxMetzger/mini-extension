@@ -1,11 +1,11 @@
 This project is a collection of examples on how to build various types of C code
 from poetry. The following examples are currently included:
 
-- extension_only: A C extension that has no external dependencies.
-- external_archive: A C extension that depends on an external C library
+- **extension_only**: A C extension that has no external dependencies.
+- **external_archive**: A C extension that depends on an external C library
   (statically linked).
-- shared_library_with_ctypes: A shared library (.dll/.so) that is accessed using
-  ctypes.
+- **shared_library_with_ctypes**: A shared library (.dll/.so) that is accessed
+  using ctypes.
 
 **Installation**
 
