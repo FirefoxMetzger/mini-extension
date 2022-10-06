@@ -29,3 +29,26 @@ b"Hello World from a shared C library via ctypes."  # shared_library_with_ctypes
 **Questions, Features, Bugs**
 
 Please open a new issue to discuss any problems, features, bugs, questions, etc.
+
+
+**VSCode debug config**
+
+Not sure where exactly to put this, but it is too useful to not mention/document. 
+If you are using VSCode while working with poetry and C extensions it can be 
+useful to be able to step through your `build.py` in the debugger. To do so, you
+can use a configuration like the one below:
+
+```
+    "configurations": [
+        {
+            "name": "Poetry Build",
+            "type": "python",
+            // path to the python executable used by poetry (NOT the one in the project's venv)
+            "python": "C:\\Users\\Sebastian\\AppData\\Roaming\\pypoetry\\venv\\Scripts\\python.exe",
+            "request": "launch",
+            "module": "poetry",
+            "args": ["build"],
+            "console": "integratedTerminal",
+        },
+    ]
+```
