@@ -17,7 +17,7 @@ _base_path = Path(__file__).parent.absolute().joinpath('lib')
 res = [f for f in os.listdir(_base_path) if re.search(rf'[a-z]*hello_library[a_z]*.{_extension}[.0-9]*', f)]
 
 # just one library should be into the folder, otherwise exception is raised
-lib_shared_hello = cdll.LoadLibrary(str(_base_path.joinpath(res[0])))
+lib_shared_hello = cdll.LoadLibrary((_base_path / res[0]).as_posix())
 
 # expose the hello function as hello_world in python
 # Note: returns a bytes object, not a python string
