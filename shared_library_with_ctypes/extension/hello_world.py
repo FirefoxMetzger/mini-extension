@@ -21,5 +21,10 @@ lib_shared_hello = cdll.LoadLibrary((_base_path / res[0]).as_posix())
 
 # expose the hello function as hello_world in python
 # Note: returns a bytes object, not a python string
-hello_world = lib_shared_hello.hello
-hello_world.restype = c_char_p
+_hello_world = lib_shared_hello.hello
+_hello_world.restype = c_char_p
+
+
+def hello_world():
+    """Public wrapper to decode the c_char_p returned by library's call."""
+    return _hello_world().decode()
