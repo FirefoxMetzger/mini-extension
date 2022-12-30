@@ -9,7 +9,7 @@ from pathlib import Path
 _extension = ''
 if platform.system() == ' Windows':
     _extension = 'dll'
-if platform.system() == 'Linux':
+elif platform.system() == 'Linux':
     _extension = 'so'
 
 _base_path = Path(__file__).parent.absolute().joinpath('lib')
