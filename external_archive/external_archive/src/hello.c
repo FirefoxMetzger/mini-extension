@@ -1,4 +1,4 @@
 const char *hello(void)
 {
-    return "Hello World from external C archvive.";
+    return "Hello World from external C archive.";
 }
