@@ -22,8 +22,8 @@ Each example is used the same way:
 >>> from extension.hello_world import hello_world
 >>> print(hello_world())
 "Hello World"  # extension_only
-"Hello World from external C archvive."  # external_archive
-b"Hello World from a shared C library via ctypes."  # shared_library_with_ctypes
+"Hello World from external C archive."  # external_archive
+"Hello World from a shared C library via ctypes."  # shared_library_with_ctypes , decoded by wrapper method
 ```
 
 **Questions, Features, Bugs**
