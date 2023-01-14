@@ -20,11 +20,16 @@ res = [f for f in os.listdir(_base_path) if re.search(rf'[a-z]*hello_library[a_z
 lib_shared_hello = cdll.LoadLibrary((_base_path / res[0]).as_posix())
 
 # expose the hello function as hello_world in python
-# Note: returns a bytes object, not a python string
 _hello_world = lib_shared_hello.hello
 _hello_world.restype = c_char_p
 
 
 def hello_world():
-    """Public wrapper to decode the c_char_p returned by library's call."""
+    """Prints a hello world message.
+
+    In ctypes, a C string is given to python as a `bytes()` object. This wrapper
+    converts it into the expected string object.
+    
+    """
+
     return _hello_world().decode()

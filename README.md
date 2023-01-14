@@ -20,7 +20,7 @@ Each example is used the same way:
 
 ```python
 >>> from extension.hello_world import hello_world
->>> print(hello_world())
+>>> hello_world()
 "Hello World"  # extension_only
 "Hello World from external C archive."  # external_archive
 "Hello World from a shared C library via ctypes."  # shared_library_with_ctypes , decoded by wrapper method
