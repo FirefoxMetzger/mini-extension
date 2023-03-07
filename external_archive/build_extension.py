@@ -5,7 +5,7 @@ from setuptools.command.develop import develop
 class CustomDevelop(develop):
     """Custom install procedure.
 
-    When declaring a ``build.py`` poetry switches to setuptools during
+    When declaring a ``build_extension.py`` poetry switches to setuptools during
     installation, i.e., it generates a temporary ``setup.py`` and then calls
     ``setup.py develop`` on it when you call ``poetry install``.
     Consequentially, we can hook into the develop command and customize the

@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Minimal example of how to build a C extension in poetry."
 authors = ["Sebastian Wallkötter <sebastian@wallkoetter.net>"]
 license = "BSD 3-clause"
-build = "build.py"
+build = "build_extension.py"
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
