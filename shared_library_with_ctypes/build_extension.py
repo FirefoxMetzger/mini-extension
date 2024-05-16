@@ -3,7 +3,7 @@ from setuptools.command.build_clib import build_clib
 
 from distutils.errors import DistutilsSetupError
 from distutils import log
-from setuptools.dep_util import newer_pairwise_group
+from setuptools.modified import newer_pairwise_group
 import platform
 from pathlib import Path
 import shutil
